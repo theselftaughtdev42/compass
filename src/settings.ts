@@ -1,38 +1,20 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
-import MyPlugin from './main';
+import { App, PluginSettingTab } from 'obsidian';
+import type CompassPlugin from './main';
 
-export interface MyPluginSettings {
-	mySetting: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- placeholder until settings are added
+export interface CompassSettings {}
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default',
-};
+export const DEFAULT_SETTINGS: CompassSettings = {};
 
-export class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+export class CompassSettingTab extends PluginSettingTab {
+	plugin: CompassPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: CompassPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
 	display(): void {
-		const { containerEl } = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Settings #1')
-			.setDesc("It's a secret")
-			.addText((text) =>
-				text
-					.setPlaceholder('Enter your secret')
-					.setValue(this.plugin.settings.mySetting)
-					.onChange(async (value) => {
-						this.plugin.settings.mySetting = value;
-						await this.plugin.saveSettings();
-					}),
-			);
+		this.containerEl.empty();
 	}
 }
