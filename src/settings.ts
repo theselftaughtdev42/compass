@@ -1,10 +1,21 @@
-import { App, PluginSettingTab } from 'obsidian';
+import { App, normalizePath, PluginSettingTab, Setting } from 'obsidian';
 import type CompassPlugin from './main';
+import { FolderSuggest } from './ui/folder-suggest';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- placeholder until settings are added
-export interface CompassSettings {}
+export interface CompassSettings {
+	/** Vault-relative folder containing main notes (those with Folgezettel IDs). Empty = vault root. */
+	mainNotesFolder: string;
+}
 
-export const DEFAULT_SETTINGS: CompassSettings = {};
+export const DEFAULT_SETTINGS: CompassSettings = {
+	mainNotesFolder: '',
+};
+
+export function normalizeFolderPath(path: string): string {
+	const trimmed = path.trim();
+	if (trimmed === '' || trimmed === '/') return '';
+	return normalizePath(trimmed);
+}
 
 export class CompassSettingTab extends PluginSettingTab {
 	plugin: CompassPlugin;
@@ -15,6 +26,21 @@ export class CompassSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		this.containerEl.empty();
+		const { containerEl } = this;
+		containerEl.empty();
+
+		new Setting(containerEl)
+			.setName('Main notes folder')
+			.setDesc('Folder that holds your main notes. Leave empty to use the vault root.')
+			.addText((text) => {
+				text
+					.setPlaceholder('main')
+					.setValue(this.plugin.settings.mainNotesFolder)
+					.onChange(async (value) => {
+						this.plugin.settings.mainNotesFolder = normalizeFolderPath(value);
+						await this.plugin.saveSettings();
+					});
+				new FolderSuggest(this.app, text.inputEl);
+			});
 	}
 }
