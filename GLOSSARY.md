@@ -70,7 +70,10 @@ A previous link that points somewhere other than the note's predecessor, includi
 A main note whose filename carries no Folgezettel ID.
 
 **Missing previous link**:
-A main note that has a predecessor but no previous link.
+A main note with no previous link. The only note excused is a first note in a chain (`1a`, `2a`) whose topic head note doesn't exist.
+
+**Title mismatch**:
+A main note whose first heading differs from the title part of its filename.
 
 **Malformed ID**:
 A Folgezettel ID that breaks the ID syntax rules (e.g. two letter segments in a row, uppercase letters).
