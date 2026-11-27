@@ -67,7 +67,7 @@ Two or more main notes sharing the same Folgezettel ID.
 A previous link that points somewhere other than the note's predecessor, including a note that has a previous link but no predecessor.
 
 **Missing ID**:
-A main note whose filename carries no Folgezettel ID.
+A main note whose filename carries no Folgezettel ID: it doesn't start with a digit.
 
 **Missing previous link**:
 A main note with no previous link. The only note excused is a first note in a chain (`1a`, `2a`) whose topic head note doesn't exist.
@@ -76,7 +76,7 @@ A main note with no previous link. The only note excused is a first note in a ch
 A main note whose first heading differs from the title part of its filename.
 
 **Malformed ID**:
-A Folgezettel ID that breaks the ID syntax rules (e.g. two letter segments in a row, uppercase letters).
+A Folgezettel ID that breaks the ID syntax rules (e.g. two letter segments in a row, uppercase letters). Any filename starting with a digit is taken to carry an ID, so `3A` and `03-Title` are malformed, not missing.
 _Avoid_: Invalid ID, bad ID
 
 **Orphan**:

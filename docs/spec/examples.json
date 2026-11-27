@@ -1,0 +1,270 @@
+{
+	"valid": [
+		{ "id": "0", "rule": "R1" },
+		{ "id": "3", "rule": "R1" },
+		{ "id": "12", "rule": "R1" },
+		{ "id": "31", "rule": "R1" },
+		{ "id": "0a", "rule": "R2" },
+		{ "id": "3a", "rule": "R2" },
+		{ "id": "3a1", "rule": "R2" },
+		{ "id": "3z10b", "rule": "R2" },
+		{ "id": "3aa", "rule": "R2" },
+		{ "id": "3ab1c", "rule": "R2" },
+		{ "id": "3a.1b", "rule": "R3" },
+		{ "id": "3a..1", "rule": "R3" },
+		{ "id": "3.a", "rule": "R3" },
+		{ "id": "123456789012345", "rule": "R1" },
+		{ "id": "3zzzzzz123456789012345", "rule": "R2" }
+	],
+	"invalid": [
+		{ "id": "", "rule": "R1" },
+		{ "id": "a", "rule": "R1" },
+		{ "id": "03", "rule": "R1" },
+		{ "id": "3A", "rule": "R2" },
+		{ "id": "3Ab", "rule": "R2" },
+		{ "id": "3aB", "rule": "R2" },
+		{ "id": "3a1B", "rule": "R2" },
+		{ "id": "3a01", "rule": "R2" },
+		{ "id": "3a0", "rule": "R2" },
+		{ "id": "3a.", "rule": "R3" },
+		{ "id": ".3a", "rule": "R3" },
+		{ "id": "3a-1", "rule": "R2" },
+		{ "id": "3a 1", "rule": "R2" },
+		{ "id": "1234567890123456", "rule": "R1" },
+		{ "id": "3a1234567890123456", "rule": "R2" },
+		{ "id": "3abcdefg", "rule": "R2" },
+		{ "id": "3 a", "rule": "R2" }
+	],
+	"letterValues": [
+		["a", 1],
+		["z", 26],
+		["aa", 27],
+		["az", 52],
+		["ba", 53],
+		["zz", 702],
+		["aaa", 703]
+	],
+	"next": [
+		["3a", "3b"],
+		["3a1", "3a2"],
+		["3z", "3aa"],
+		["3a9", "3a10"]
+	],
+	"branch": [
+		["3a", "3a1"],
+		["3a1", "3a1a"]
+	],
+	"requiredEarlierBranch": [
+		["3a.1", "3a1"],
+		["3a..1", "3a.1"],
+		["3.a", "3a"],
+		["3a.2", null],
+		["3a1", null],
+		["3", null]
+	],
+	"predecessor": [
+		["3", null],
+		["3a", "3"],
+		["3b", "3a"],
+		["3a1", "3a"],
+		["3a2", "3a1"],
+		["3a.2", "3a.1"],
+		["3a..1", "3a"],
+		["3aa", "3z"],
+		["3a10", "3a9"]
+	],
+	"lineage": ["3a.2b", "3a.2a", "3a.2", "3a.1", "3a", "3"],
+	"sortOrder": [
+		["3", "3a", "3a1", "3a2", "3a.1", "3a.2", "3a..1", "3b"],
+		["3z", "3aa"],
+		["9a", "10"]
+	],
+	"filenames": [
+		["3a-Title", "ok"],
+		["3a-Title - with dash", "ok"],
+		["3", "ok"],
+		["3A-Title", "malformed"],
+		["3A", "malformed"],
+		["03", "malformed"],
+		["3a.", "malformed"],
+		["Some note-with dash", "missing"],
+		["-Title", "missing"],
+		["Some note", "missing"]
+	],
+	"previousLinks": [
+		["[[3a-Title]]", ["3a-Title"]],
+		["[[3a-Title|alias]]", ["3a-Title"]],
+		["[[3a-Title#Heading]]", ["3a-Title"]],
+		["[[Main Notes/3a-Title.md]]", ["3a-Title"]],
+		["3a-Title", ["3a-Title"]],
+		["", []],
+		["[[]]", []],
+		[null, []],
+		[42, []],
+		[["[[3a-Title]]"], ["3a-Title"]],
+		[[["3a-Title"]], ["3a-Title"]],
+		[["[[3a-A]]", "[[3b-B]]"], ["3a-A", "3b-B"]],
+		[[], []],
+		[[""], []]
+	],
+	"lint": [
+		{
+			"rule": "N1–N7",
+			"name": "passes a well-formed sequence",
+			"notes": [
+				{ "basename": "3-Head" },
+				{ "basename": "3a-A", "previous": "[[3-Head]]" },
+				{ "basename": "3a1-A1", "previous": "[[3a-A]]" },
+				{ "basename": "3a.1-A dot 1", "previous": "[[3a-A]]" },
+				{ "basename": "3b-B", "previous": "[[3a-A]]" }
+			],
+			"issues": []
+		},
+		{
+			"rule": "N1",
+			"name": "flags missing and malformed IDs",
+			"notes": [
+				{ "basename": "Unfinished" },
+				{ "basename": "3A-Upper" }
+			],
+			"issues": [
+				["Unfinished", "missing-id"],
+				["3A-Upper", "malformed-id"]
+			]
+		},
+		{
+			"rule": "N2",
+			"name": "flags every note sharing an ID",
+			"notes": [
+				{ "basename": "3a-One" },
+				{ "basename": "3a-Two" }
+			],
+			"issues": [
+				["3a-One", "duplicate-id"],
+				["3a-Two", "duplicate-id"]
+			]
+		},
+		{
+			"rule": "N3",
+			"name": "flags an orphan whose predecessor is missing",
+			"notes": [
+				{ "basename": "3a-A" },
+				{ "basename": "3c-C", "previous": "[[3b-B]]" }
+			],
+			"issues": [
+				["3c-C", "orphan"]
+			]
+		},
+		{
+			"rule": "N3",
+			"name": "does not treat a missing bare root as orphaning",
+			"notes": [
+				{ "basename": "3a-A" }
+			],
+			"issues": []
+		},
+		{
+			"rule": "N4",
+			"name": "flags a skipped branch",
+			"notes": [
+				{ "basename": "3a-A" },
+				{ "basename": "3a.1-Dot", "previous": "[[3a-A]]" }
+			],
+			"issues": [
+				["3a.1-Dot", "skipped-branch"]
+			]
+		},
+		{
+			"rule": "N6",
+			"name": "flags a missing previous link",
+			"notes": [
+				{ "basename": "3a-A" },
+				{ "basename": "3b-B" }
+			],
+			"issues": [
+				["3b-B", "missing-previous-link"]
+			]
+		},
+		{
+			"rule": "N6",
+			"name": "requires a previous link on the first note when the topic head exists",
+			"notes": [
+				{ "basename": "3-Head" },
+				{ "basename": "3a-A" }
+			],
+			"issues": [
+				["3a-A", "missing-previous-link"]
+			]
+		},
+		{
+			"rule": "N6",
+			"name": "does not require a previous link on a bare root",
+			"notes": [
+				{ "basename": "3-Head" }
+			],
+			"issues": []
+		},
+		{
+			"rule": "N5",
+			"name": "accepts a previous link stored as a list",
+			"notes": [
+				{ "basename": "3a-A" },
+				{ "basename": "3b-B", "previous": ["[[3a-A]]"] },
+				{ "basename": "3c-C", "previous": [["3b-B"]] }
+			],
+			"issues": []
+		},
+		{
+			"rule": "N7",
+			"name": "flags a previous link pointing to the wrong note",
+			"notes": [
+				{ "basename": "3a-A" },
+				{ "basename": "3b-B", "previous": "[[3a-A]]" },
+				{ "basename": "3c-C", "previous": "[[3a-A]]" }
+			],
+			"issues": [
+				["3c-C", "previous-link-mismatch"]
+			]
+		},
+		{
+			"rule": "N7",
+			"name": "flags a previous link on a note with no predecessor",
+			"notes": [
+				{ "basename": "3-Head", "previous": "[[2-Other]]" }
+			],
+			"issues": [
+				["3-Head", "previous-link-mismatch"]
+			]
+		},
+		{
+			"rule": "N7",
+			"name": "flags more than one previous link",
+			"notes": [
+				{ "basename": "3-Head" },
+				{ "basename": "3a-A", "previous": "[[3-Head]]" },
+				{ "basename": "3b-B", "previous": ["[[3a-A]]", "[[3a-A]]"] }
+			],
+			"issues": [
+				["3b-B", "previous-link-mismatch"]
+			]
+		},
+		{
+			"rule": "N7",
+			"name": "accepts a link carrying the ID of a missing topic head",
+			"notes": [
+				{ "basename": "3a-A", "previous": "[[3-Head]]" }
+			],
+			"issues": []
+		},
+		{
+			"rule": "N7",
+			"name": "accepts a link carrying the ID of a missing predecessor",
+			"notes": [
+				{ "basename": "3c-C", "previous": "[[3b-Gone]]" }
+			],
+			"issues": [
+				["3c-C", "orphan"]
+			]
+		}
+	]
+}
