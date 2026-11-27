@@ -1,3 +1,8 @@
+/**
+ * Lint checks for main notes.
+ * Source of truth: docs/spec/folgezettel-ids.md (note rules N1–N7).
+ */
+
 import {
 	FolgezettelId,
 	formatId,
@@ -37,22 +42,32 @@ type IdText =
 	| { status: 'malformed' };
 
 /**
- * The ID is the text before the first `-`. With no `-`, the whole filename is
- * an ID if it parses (a title-less note), otherwise the note has no ID.
+ * The ID is the text before the first `-`, or the whole filename for a
+ * title-less note. A filename starting with a digit is trying to carry an ID,
+ * so if that ID doesn't parse it is malformed; any other filename has no ID.
  */
 export function idFromBasename(basename: string): IdText {
 	const dash = basename.indexOf('-');
 	const candidate = dash === -1 ? basename : basename.slice(0, dash);
 	const id = parseId(candidate);
 	if (id) return { status: 'ok', id };
-	return dash === -1 ? { status: 'missing' } : { status: 'malformed' };
+	return /^\d/.test(basename) ? { status: 'malformed' } : { status: 'missing' };
 }
 
 /**
- * Link target from a previous link value, stripped of alias, heading, folder
- * and `.md`. Null if there is no link.
+ * Link targets from a `previous` value, each stripped of alias, heading,
+ * folder and `.md`. Accepts a single link or a list of links, as Obsidian's
+ * list property writes. Unquoted YAML `[[3a-A]]` parses as `[["3a-A"]]`, so a
+ * one-item inner list counts as one link. Empty if there is no link.
  */
-export function previousLinkTarget(value: unknown): string | null {
+export function previousLinkTargets(value: unknown): string[] {
+	const items = Array.isArray(value) ? (value as unknown[]) : [value];
+	return items
+		.map((item) => linkTarget(Array.isArray(item) && item.length === 1 ? item[0] : item))
+		.filter((target): target is string => target !== null);
+}
+
+function linkTarget(value: unknown): string | null {
 	if (typeof value !== 'string') return null;
 	let text = value.trim();
 	const wiki = /^\[\[([^\]]*)\]\]$/.exec(text);
@@ -100,12 +115,17 @@ export function lintNotes(notes: MainNoteInput[]): LintIssue[] {
 			issues.push({ kind: 'skipped-branch', path: note.path });
 		}
 
-		const target = previousLinkTarget(note.previous);
-		if (target === null) {
+		const targets = previousLinkTargets(note.previous);
+		const [target] = targets;
+		if (target === undefined) {
 			const excused =
 				predecessor === null || (predecessorMissing && isBareRoot(predecessor));
 			if (!excused) issues.push({ kind: 'missing-previous-link', path: note.path });
-		} else if (!linkMatchesPredecessor(target, predecessorKey, predecessorNotes)) {
+		} else if (
+			// A note has one predecessor, so more than one previous link is a mismatch.
+			targets.length > 1 ||
+			!linkMatchesPredecessor(target, predecessorKey, predecessorNotes)
+		) {
 			issues.push({ kind: 'previous-link-mismatch', path: note.path });
 		}
 	}

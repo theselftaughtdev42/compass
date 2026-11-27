@@ -20,8 +20,9 @@ export interface FolgezettelId {
 	segments: Segment[];
 }
 
-const ROOT_PATTERN = /^(0|[1-9]\d*)/;
-const SEGMENT_PATTERN = /^(\.*)([a-z]+|[1-9]\d*)/;
+// Length caps (R1, R2) keep every value a safe integer.
+const ROOT_PATTERN = /^(0|[1-9]\d{0,14})/;
+const SEGMENT_PATTERN = /^(\.*)([a-z]{1,6}|[1-9]\d{0,14})/;
 
 /** Parses an ID such as `3a.1b`. Returns null if it breaks the syntax rules. */
 export function parseId(text: string): FolgezettelId | null {
