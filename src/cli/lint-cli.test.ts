@@ -119,6 +119,17 @@ describe('usage errors', () => {
 		expect(runLintCli('notes', ['nope'], open(vault)).stderr).toEqual(['Vault not found: "nope"']);
 	});
 
+	it.each([['../'], ['Main/../../other']])('rejects a folder outside the vault: %s', (folder) => {
+		const result = runLintCli('notes', ['vault', folder], open(vault));
+		expect(result.exitCode).toBe(2);
+		expect(result.stderr[0]).toMatch(/outside the vault/);
+	});
+
+	it('rejects a settings folder outside the vault', () => {
+		const v = memoryVault({ '.obsidian/plugins/compass/data.json': settings('../x') });
+		expect(runLintCli('notes', ['vault'], open(v)).exitCode).toBe(2);
+	});
+
 	it('reports a missing folder', () => {
 		const result = runLintCli('notes', ['vault', 'Nope'], open(vault));
 		expect(result).toMatchObject({ exitCode: 2, stderr: ['Main notes folder not found: "Nope"'] });

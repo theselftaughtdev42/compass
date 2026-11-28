@@ -8,7 +8,10 @@ export interface VaultReader {
 	listMarkdown(folder: string): string[] | null;
 	/** File contents, or null if the file doesn't exist. */
 	read(path: string): string | null;
-	/** A user-given note path (vault-relative or absolute) as a vault path, or null if outside the vault. */
+	/**
+	 * A user-given note path as a vault path, or null if outside the vault. A relative
+	 * path is tried from the current folder first, like `<vault>`, then from the vault root.
+	 */
 	toVaultPath(path: string): string | null;
 }
 
@@ -25,7 +28,7 @@ const SETTINGS_PATH = '.obsidian/plugins/compass/data.json';
 
 const USAGE: Record<LintCommand, string> = {
 	notes: 'Usage: npm run lint:notes -- <vault> [folder]',
-	note: 'Usage: npm run lint:note -- <vault> <path>',
+	note: 'Usage: npm run lint:note -- <vault> <path>\n<path> is relative to the current folder, or else to the vault.',
 };
 
 /** Runs `lint:notes` or `lint:note`. `openVault` returns null if the vault path isn't a folder. */
@@ -45,6 +48,9 @@ export function runLintCli(
 		command === 'notes' && target !== undefined
 			? normalizeFolder(target)
 			: settingsFolder(vault);
+	if (folder.split('/').includes('..')) {
+		return usageError(`Main notes folder is outside the vault: "${folder}"`);
+	}
 	const paths = vault.listMarkdown(folder);
 	if (!paths) return usageError(`Main notes folder not found: "${folder}"`);
 

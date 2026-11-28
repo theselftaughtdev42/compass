@@ -6,6 +6,10 @@ import type { VaultReader } from './lint-cli';
 export function openNodeVault(vaultPath: string, cwd: string): VaultReader | null {
 	const root = resolve(cwd, vaultPath);
 	if (!isDirectory(root)) return null;
+	const insideVault = (file: string) => {
+		const rel = relative(root, file);
+		return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
+	};
 
 	return {
 		listMarkdown(folder) {
@@ -20,9 +24,11 @@ export function openNodeVault(vaultPath: string, cwd: string): VaultReader | nul
 			return existsSync(file) && statSync(file).isFile() ? readFileSync(file, 'utf8') : null;
 		},
 		toVaultPath(path) {
-			const rel = relative(root, isAbsolute(path) ? path : join(root, path));
-			if (rel === '' || rel.startsWith('..') || isAbsolute(rel)) return null;
-			return rel.split(sep).join('/');
+			const fromCwd = resolve(cwd, path);
+			const candidates = isAbsolute(path) ? [fromCwd] : [fromCwd, join(root, path)];
+			const file = candidates.find((c) => insideVault(c) && existsSync(c)) ?? candidates.at(-1);
+			if (file === undefined || !insideVault(file)) return null;
+			return relative(root, file).split(sep).join('/');
 		},
 	};
 }
