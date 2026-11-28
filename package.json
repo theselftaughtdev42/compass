@@ -9,6 +9,8 @@
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"lint": "eslint .",
+		"lint:notes": "jiti src/cli/main.ts notes",
+		"lint:note": "jiti src/cli/main.ts note",
 		"test": "vitest run"
 	},
 	"keywords": [],
@@ -24,6 +26,7 @@
 		"obsidian": "latest",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.59.1",
-		"vitest": "^3.2.7"
+		"vitest": "^3.2.7",
+		"yaml": "^2.9.1"
 	}
 }
