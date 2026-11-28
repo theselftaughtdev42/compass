@@ -21,6 +21,17 @@ export type LintIssueKind =
 	| 'missing-previous-link'
 	| 'previous-link-mismatch';
 
+/** Each lint issue kind's glossary name, as shown to the user. */
+export const LINT_ISSUE_NAMES: Record<LintIssueKind, string> = {
+	'missing-id': 'Missing ID',
+	'malformed-id': 'Malformed ID',
+	'duplicate-id': 'Duplicate ID',
+	orphan: 'Orphan',
+	'skipped-branch': 'Skipped branch',
+	'missing-previous-link': 'Missing previous link',
+	'previous-link-mismatch': 'Previous link mismatch',
+};
+
 export interface LintIssue {
 	kind: LintIssueKind;
 	/** Vault path of the main note with the issue. */

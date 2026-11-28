@@ -2,14 +2,8 @@ import { App, normalizePath, PluginSettingTab, Setting } from 'obsidian';
 import type CompassPlugin from './main';
 import { FolderSuggest } from './ui/folder-suggest';
 
-export interface CompassSettings {
-	/** Vault-relative folder containing main notes (those with Folgezettel IDs). Empty = vault root. */
-	mainNotesFolder: string;
-}
-
-export const DEFAULT_SETTINGS: CompassSettings = {
-	mainNotesFolder: '',
-};
+export { DEFAULT_SETTINGS } from './settings-defaults';
+export type { CompassSettings } from './settings-defaults';
 
 export function normalizeFolderPath(path: string): string {
 	const trimmed = path.trim();

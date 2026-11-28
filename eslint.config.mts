@@ -29,4 +29,15 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		// Node command-line tools (npm run lint:notes / lint:note), never bundled into the plugin.
+		files: ['src/cli/**/*.ts'],
+		languageOptions: { globals: { ...globals.node } },
+		rules: {
+			'no-console': 'off',
+			'obsidianmd/rule-custom-message': 'off',
+			'obsidianmd/no-nodejs-modules': 'off',
+			'obsidianmd/hardcoded-config-path': 'off',
+		},
+	},
 );
