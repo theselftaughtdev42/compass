@@ -2,10 +2,10 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import type { VaultReader } from './lint-cli';
 
-/** A VaultReader over a folder on disk, or null if `vaultPath` isn't a folder. */
+/** A VaultReader over a vault on disk, or null if `vaultPath` isn't an Obsidian vault (no `.obsidian` folder). */
 export function openNodeVault(vaultPath: string, cwd: string): VaultReader | null {
 	const root = resolve(cwd, vaultPath);
-	if (!isDirectory(root)) return null;
+	if (!isDirectory(join(root, '.obsidian'))) return null;
 	const insideVault = (file: string) => {
 		const rel = relative(root, file);
 		return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);

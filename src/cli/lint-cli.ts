@@ -31,7 +31,7 @@ const USAGE: Record<LintCommand, string> = {
 	note: 'Usage: npm run lint:note -- <vault> <path>\n<path> is relative to the current folder, or else to the vault.',
 };
 
-/** Runs `lint:notes` or `lint:note`. `openVault` returns null if the vault path isn't a folder. */
+/** Runs `lint:notes` or `lint:note`. `openVault` returns null if the path isn't an Obsidian vault. */
 export function runLintCli(
 	command: LintCommand,
 	args: string[],
@@ -42,7 +42,7 @@ export function runLintCli(
 		return usageError(USAGE[command]);
 	}
 	const vault = openVault(vaultPath);
-	if (!vault) return usageError(`Vault not found: "${vaultPath}"`);
+	if (!vault) return usageError(`Not an Obsidian vault (no .obsidian folder): "${vaultPath}"`);
 
 	const folder =
 		command === 'notes' && target !== undefined

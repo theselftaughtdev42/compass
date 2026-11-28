@@ -115,8 +115,10 @@ describe('usage errors', () => {
 		expect(result.stderr[0]).toMatch(/^Usage:/);
 	});
 
-	it('reports a missing vault', () => {
-		expect(runLintCli('notes', ['nope'], open(vault)).stderr).toEqual(['Vault not found: "nope"']);
+	it('reports a path that is not a vault', () => {
+		expect(runLintCli('notes', ['nope'], open(vault)).stderr).toEqual([
+			'Not an Obsidian vault (no .obsidian folder): "nope"',
+		]);
 	});
 
 	it.each([['../'], ['Main/../../other']])('rejects a folder outside the vault: %s', (folder) => {

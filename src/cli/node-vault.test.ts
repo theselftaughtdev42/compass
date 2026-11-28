@@ -4,10 +4,17 @@ import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { openNodeVault } from './node-vault';
 
+describe('openNodeVault', () => {
+	it('rejects a folder without .obsidian', () => {
+		expect(openNodeVault(mkdtempSync(join(tmpdir(), 'compass-plain-')), tmpdir())).toBeNull();
+	});
+});
+
 describe('openNodeVault toVaultPath', () => {
 	let root = '';
 	beforeAll(() => {
 		root = mkdtempSync(join(tmpdir(), 'compass-vault-'));
+		mkdirSync(join(root, '.obsidian'));
 		mkdirSync(join(root, 'Main'));
 		writeFileSync(join(root, 'Main', '3a-A.md'), '');
 	});
