@@ -40,4 +40,9 @@ export default defineConfig(
 			'obsidianmd/hardcoded-config-path': 'off',
 		},
 	},
+	{
+		// Tests run in Node under vitest, never bundled into the plugin.
+		files: ['src/**/*.test.ts'],
+		rules: { 'obsidianmd/no-nodejs-modules': 'off' },
+	},
 );

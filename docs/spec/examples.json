@@ -128,8 +128,8 @@
 				{ "basename": "3A-Upper" }
 			],
 			"issues": [
-				["Unfinished", "missing-id"],
-				["3A-Upper", "malformed-id"]
+				["Unfinished", "missing-id", {}],
+				["3A-Upper", "malformed-id", {}]
 			]
 		},
 		{
@@ -140,8 +140,8 @@
 				{ "basename": "3a-Two" }
 			],
 			"issues": [
-				["3a-One", "duplicate-id"],
-				["3a-Two", "duplicate-id"]
+				["3a-One", "duplicate-id", { "sharedWith": ["3a-Two"] }],
+				["3a-Two", "duplicate-id", { "sharedWith": ["3a-One"] }]
 			]
 		},
 		{
@@ -152,7 +152,7 @@
 				{ "basename": "3c-C", "previous": "[[3b-B]]" }
 			],
 			"issues": [
-				["3c-C", "orphan"]
+				["3c-C", "orphan", { "predecessorId": "3b" }]
 			]
 		},
 		{
@@ -171,7 +171,7 @@
 				{ "basename": "3a.1-Dot", "previous": "[[3a-A]]" }
 			],
 			"issues": [
-				["3a.1-Dot", "skipped-branch"]
+				["3a.1-Dot", "skipped-branch", { "requiredBranchId": "3a1" }]
 			]
 		},
 		{
@@ -182,7 +182,7 @@
 				{ "basename": "3b-B" }
 			],
 			"issues": [
-				["3b-B", "missing-previous-link"]
+				["3b-B", "missing-previous-link", { "predecessorId": "3a", "predecessorPaths": ["3a-A"] }]
 			]
 		},
 		{
@@ -193,7 +193,7 @@
 				{ "basename": "3a-A" }
 			],
 			"issues": [
-				["3a-A", "missing-previous-link"]
+				["3a-A", "missing-previous-link", { "predecessorId": "3", "predecessorPaths": ["3-Head"] }]
 			]
 		},
 		{
@@ -223,7 +223,7 @@
 				{ "basename": "3c-C", "previous": "[[3a-A]]" }
 			],
 			"issues": [
-				["3c-C", "previous-link-mismatch"]
+				["3c-C", "previous-link-mismatch", { "predecessorId": "3b", "predecessorPaths": ["3b-B"], "targets": ["3a-A"], "targetPaths": ["3a-A"] }]
 			]
 		},
 		{
@@ -233,7 +233,7 @@
 				{ "basename": "3-Head", "previous": "[[2-Other]]" }
 			],
 			"issues": [
-				["3-Head", "previous-link-mismatch"]
+				["3-Head", "previous-link-mismatch", { "predecessorId": null, "predecessorPaths": [], "targets": ["2-Other"], "targetPaths": [] }]
 			]
 		},
 		{
@@ -245,7 +245,7 @@
 				{ "basename": "3b-B", "previous": ["[[3a-A]]", "[[3a-A]]"] }
 			],
 			"issues": [
-				["3b-B", "previous-link-mismatch"]
+				["3b-B", "previous-link-mismatch", { "predecessorId": "3a", "predecessorPaths": ["3a-A"], "targets": ["3a-A", "3a-A"], "targetPaths": ["3a-A"] }]
 			]
 		},
 		{
@@ -263,7 +263,33 @@
 				{ "basename": "3c-C", "previous": "[[3b-Gone]]" }
 			],
 			"issues": [
-				["3c-C", "orphan"]
+				["3c-C", "orphan", { "predecessorId": "3b" }]
+			]
+		},
+		{
+			"rule": "N2",
+			"name": "names every other note sharing an ID",
+			"notes": [
+				{ "basename": "3-One" },
+				{ "basename": "3-Two" },
+				{ "basename": "3-Three" }
+			],
+			"issues": [
+				["3-One", "duplicate-id", { "sharedWith": ["3-Two", "3-Three"] }],
+				["3-Two", "duplicate-id", { "sharedWith": ["3-One", "3-Three"] }],
+				["3-Three", "duplicate-id", { "sharedWith": ["3-One", "3-Two"] }]
+			]
+		},
+		{
+			"rule": "N3, N6",
+			"name": "names a missing predecessor that is not linked",
+			"notes": [
+				{ "basename": "3a-A", "previous": "[[3-Head]]" },
+				{ "basename": "3c-C" }
+			],
+			"issues": [
+				["3c-C", "orphan", { "predecessorId": "3b" }],
+				["3c-C", "missing-previous-link", { "predecessorId": "3b", "predecessorPaths": [] }]
 			]
 		}
 	]

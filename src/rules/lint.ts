@@ -11,6 +11,7 @@ import {
 	predecessorOf,
 	requiredEarlierBranchOf,
 } from './folgezettel-id';
+import { LINT_RULE_IDS, LintRuleId } from './rule-ids';
 
 export type LintIssueKind =
 	| 'missing-id'
@@ -32,10 +33,58 @@ export const LINT_ISSUE_NAMES: Record<LintIssueKind, string> = {
 	'previous-link-mismatch': 'Previous link mismatch',
 };
 
-export interface LintIssue {
-	kind: LintIssueKind;
+interface IssueBase<K extends LintIssueKind> {
+	kind: K;
+	/** Spec rule the issue breaks; always `LINT_RULE_IDS[kind]`. */
+	rule: LintRuleId;
 	/** Vault path of the main note with the issue. */
 	path: string;
+}
+
+/**
+ * A way one main note breaks the note rules, with the details needed to
+ * explain it. IDs are in canonical form; note references are vault paths.
+ */
+export type LintIssue =
+	| IssueBase<'missing-id'>
+	| IssueBase<'malformed-id'>
+	| (IssueBase<'duplicate-id'> & {
+			/** The other main notes with the same ID. */
+			sharedWith: string[];
+	  })
+	| (IssueBase<'orphan'> & {
+			/** The predecessor that doesn't exist. */
+			predecessorId: string;
+	  })
+	| (IssueBase<'skipped-branch'> & {
+			/** The branch with one fewer dot that doesn't exist. */
+			requiredBranchId: string;
+	  })
+	| (IssueBase<'missing-previous-link'> & {
+			/** What the previous link should point to. */
+			predecessorId: string;
+			/** Main notes with the predecessor's ID; empty if it doesn't exist. */
+			predecessorPaths: string[];
+	  })
+	| (IssueBase<'previous-link-mismatch'> & {
+			/** What the previous link should point to; null for a bare root. */
+			predecessorId: string | null;
+			/** Main notes with the predecessor's ID; empty if it doesn't exist. */
+			predecessorPaths: string[];
+			/** Every previous link target, as written (N5). */
+			targets: string[];
+			/** Main notes the targets resolve to; empty if none do. */
+			targetPaths: string[];
+	  });
+
+type IssueOf<K extends LintIssueKind> = Extract<LintIssue, { kind: K }>;
+
+function issue<K extends LintIssueKind>(
+	kind: K,
+	path: string,
+	details: Omit<IssueOf<K>, 'kind' | 'rule' | 'path'>,
+): IssueOf<K> {
+	return { kind, rule: LINT_RULE_IDS[kind], path, ...details } as IssueOf<K>;
 }
 
 /** What the rules need to know about one main note. */
@@ -93,13 +142,15 @@ export function lintNotes(notes: MainNoteInput[]): LintIssue[] {
 	const issues: LintIssue[] = [];
 	const parsed: { note: MainNoteInput; id: FolgezettelId; key: string }[] = [];
 	const byId = new Map<string, MainNoteInput[]>();
+	const byBasename = new Map<string, string[]>();
 
 	for (const note of notes) {
+		byBasename.set(note.basename, [...(byBasename.get(note.basename) ?? []), note.path]);
 		const result = idFromBasename(note.basename);
 		if (result.status === 'missing') {
-			issues.push({ kind: 'missing-id', path: note.path });
+			issues.push(issue('missing-id', note.path, {}));
 		} else if (result.status === 'malformed') {
-			issues.push({ kind: 'malformed-id', path: note.path });
+			issues.push(issue('malformed-id', note.path, {}));
 		} else {
 			const key = formatId(result.id);
 			parsed.push({ note, id: result.id, key });
@@ -108,36 +159,55 @@ export function lintNotes(notes: MainNoteInput[]): LintIssue[] {
 	}
 
 	for (const { note, id, key } of parsed) {
-		if ((byId.get(key)?.length ?? 0) > 1) {
-			issues.push({ kind: 'duplicate-id', path: note.path });
+		const sharers = byId.get(key) ?? [];
+		if (sharers.length > 1) {
+			const sharedWith = sharers.filter((n) => n !== note).map((n) => n.path);
+			issues.push(issue('duplicate-id', note.path, { sharedWith }));
 		}
 
 		const predecessor = predecessorOf(id);
 		const predecessorKey = predecessor ? formatId(predecessor) : null;
 		const predecessorNotes = predecessorKey ? (byId.get(predecessorKey) ?? []) : [];
+		const predecessorPaths = predecessorNotes.map((n) => n.path);
 		const predecessorMissing = predecessor !== null && predecessorNotes.length === 0;
 
-		if (predecessorMissing && !isBareRoot(predecessor)) {
-			issues.push({ kind: 'orphan', path: note.path });
+		if (predecessorKey !== null && predecessorMissing && !isBareRoot(predecessor)) {
+			issues.push(issue('orphan', note.path, { predecessorId: predecessorKey }));
 		}
 
 		const earlierBranch = requiredEarlierBranchOf(id);
-		if (earlierBranch && !byId.has(formatId(earlierBranch))) {
-			issues.push({ kind: 'skipped-branch', path: note.path });
+		const earlierBranchKey = earlierBranch ? formatId(earlierBranch) : null;
+		if (earlierBranchKey !== null && !byId.has(earlierBranchKey)) {
+			issues.push(issue('skipped-branch', note.path, { requiredBranchId: earlierBranchKey }));
 		}
 
 		const targets = previousLinkTargets(note.previous);
 		const [target] = targets;
 		if (target === undefined) {
 			const excused =
-				predecessor === null || (predecessorMissing && isBareRoot(predecessor));
-			if (!excused) issues.push({ kind: 'missing-previous-link', path: note.path });
+				predecessorKey === null || (predecessorMissing && isBareRoot(predecessor));
+			if (!excused) {
+				issues.push(
+					issue('missing-previous-link', note.path, {
+						predecessorId: predecessorKey,
+						predecessorPaths,
+					}),
+				);
+			}
 		} else if (
 			// A note has one predecessor, so more than one previous link is a mismatch.
 			targets.length > 1 ||
 			!linkMatchesPredecessor(target, predecessorKey, predecessorNotes)
 		) {
-			issues.push({ kind: 'previous-link-mismatch', path: note.path });
+			const targetPaths = [...new Set(targets.flatMap((t) => byBasename.get(t) ?? []))];
+			issues.push(
+				issue('previous-link-mismatch', note.path, {
+					predecessorId: predecessorKey,
+					predecessorPaths,
+					targets,
+					targetPaths,
+				}),
+			);
 		}
 	}
 
