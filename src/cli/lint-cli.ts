@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS } from '../settings-defaults';
 import { LINT_ISSUE_NAMES, lintNotes, LintIssue, MainNoteInput } from '../rules/lint';
+import { countText } from '../lint/report';
 import { readProperties } from './frontmatter';
 
 /** Read access to one vault. All paths are vault-relative and use `/`. */
@@ -66,7 +67,7 @@ export function runLintCli(
 	}
 
 	return {
-		stdout: [...issueLines(issues), countLine(issues)],
+		stdout: [...issueLines(issues), countText(issues.length, new Set(issues.map((i) => i.path)).size)],
 		stderr: [],
 		exitCode: issues.length > 0 ? 1 : 0,
 	};
@@ -104,14 +105,4 @@ function issueLines(issues: LintIssue[]): string[] {
 	return [...issues]
 		.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
 		.map((issue) => `"${issue.path}": ${LINT_ISSUE_NAMES[issue.kind]}`);
-}
-
-function countLine(issues: LintIssue[]): string {
-	if (issues.length === 0) return 'No lint issues';
-	const notes = new Set(issues.map((issue) => issue.path)).size;
-	return `${plural(issues.length, 'lint issue')} in ${plural(notes, 'note')}`;
-}
-
-function plural(count: number, noun: string): string {
-	return `${count} ${noun}${count === 1 ? '' : 's'}`;
 }
