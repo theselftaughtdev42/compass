@@ -71,7 +71,7 @@ export type LintIssue =
 			predecessorId: string | null;
 			/** Main notes with the predecessor's ID; empty if it doesn't exist. */
 			predecessorPaths: string[];
-			/** Every previous link target, as written (N5). */
+			/** Every previous link target, as read by N5: no alias, heading, folder or `.md`. */
 			targets: string[];
 			/** Main notes the targets resolve to; empty if none do. */
 			targetPaths: string[];
@@ -159,9 +159,9 @@ export function lintNotes(notes: MainNoteInput[]): LintIssue[] {
 	}
 
 	for (const { note, id, key } of parsed) {
-		const sharers = byId.get(key) ?? [];
-		if (sharers.length > 1) {
-			const sharedWith = sharers.filter((n) => n !== note).map((n) => n.path);
+		const notesWithId = byId.get(key) ?? [];
+		if (notesWithId.length > 1) {
+			const sharedWith = notesWithId.filter((n) => n !== note).map((n) => n.path);
 			issues.push(issue('duplicate-id', note.path, { sharedWith }));
 		}
 
