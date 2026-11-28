@@ -2,7 +2,7 @@
 	"id": "compass",
 	"name": "Compass",
 	"version": "0.0.1",
-	"minAppVersion": "1.6.6",
+	"minAppVersion": "1.7.2",
 	"description": "",
 	"author": "Tim MacKay",
 	"isDesktopOnly": false
